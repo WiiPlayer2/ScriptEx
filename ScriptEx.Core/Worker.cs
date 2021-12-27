@@ -1,29 +1,32 @@
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using ScriptEx.Core.Engines;
+using ScriptEx.Core.Internals;
+using ScriptEx.Shared;
 
 namespace ScriptEx.Core
 {
-    public class Worker : BackgroundService
+    internal class Worker : BackgroundService
     {
-        private readonly ILogger<Worker> _logger;
+        private readonly ILogger<Worker> logger;
 
-        public Worker(ILogger<Worker> logger)
+        private readonly ScriptRunner scriptRunner;
+
+        public Worker(ILogger<Worker> logger, IScriptEngineRegistry engineRegistry, ScriptRunner scriptRunner)
         {
-            _logger = logger;
+            this.logger = logger;
+            this.scriptRunner = scriptRunner;
+
+            engineRegistry.Register(new PowershellEngine());
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                await Task.Delay(1000, stoppingToken);
-            }
+            var result = await scriptRunner.Run("./bin/Debug/net5.0/scripts/test.ps1", stoppingToken);
+            Console.WriteLine(result);
         }
     }
 }

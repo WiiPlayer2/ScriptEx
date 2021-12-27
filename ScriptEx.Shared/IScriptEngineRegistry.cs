@@ -6,7 +6,7 @@ namespace ScriptEx.Shared
 {
     public interface IScriptEngineRegistry
     {
-        IReadOnlyList<IScriptEngine> RegisteredEngines { get; }
+        IReadOnlyCollection<IScriptEngine> RegisteredEngines { get; }
 
         Task Register(IScriptEngine engine);
 
