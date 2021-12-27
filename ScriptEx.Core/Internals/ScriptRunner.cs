@@ -18,14 +18,26 @@ namespace ScriptEx.Core.Internals
 
         public async Task<ScriptResult> Run(string file, CancellationToken cancellationToken = default)
         {
-            var engine = FindEngine(file);
+            var engine = FindEngineByExtension(Path.GetExtension(file).ToLowerInvariant());
             if (engine is null)
                 return new ScriptResult(string.Empty, $"No valid engine for \"{file}\" found.", -1);
 
             return await engine.Run(file, cancellationToken);
         }
 
-        private IScriptEngine? FindEngine(string file)
-            => engineRegistry.RegisteredEngines.FirstOrDefault(o => Path.GetExtension(file).ToLowerInvariant() == o.FileExtension);
+        public async Task<ScriptResult> Execute(string language, string contents, CancellationToken cancellationToken = default)
+        {
+            var engine = FindEngineByLanguage(language);
+            if (engine is null)
+                return new ScriptResult(string.Empty, $"No valid engine for language \"{language}\" found.", -1);
+
+            return await engine.Execute(contents, cancellationToken);
+        }
+
+        private IScriptEngine? FindEngineByExtension(string fileExtension)
+            => engineRegistry.RegisteredEngines.FirstOrDefault(o => o.FileExtension == fileExtension);
+
+        private IScriptEngine? FindEngineByLanguage(string language)
+            => engineRegistry.RegisteredEngines.FirstOrDefault(o => o.LanguageIdentifier == language);
     }
 }

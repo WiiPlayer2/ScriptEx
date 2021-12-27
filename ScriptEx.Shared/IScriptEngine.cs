@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,6 +12,6 @@ namespace ScriptEx.Shared
 
         Task<ScriptResult> Run(string file, CancellationToken cancellationToken = default);
 
-        Task<IReadOnlyList<string>> ReadMetaDataStrings(string contents, CancellationToken cancellationToken = default);
+        Task<ScriptResult> Execute(string contents, CancellationToken cancellationToken = default);
     }
 }
