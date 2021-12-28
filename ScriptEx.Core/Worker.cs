@@ -13,20 +13,15 @@ namespace ScriptEx.Core
     {
         private readonly ILogger<Worker> logger;
 
-        private readonly IScriptRunner scriptRunner;
-
-        public Worker(ILogger<Worker> logger, IServiceProvider services, IScriptEngineRegistry engineRegistry, IScriptRunner scriptRunner)
+        public Worker(ILogger<Worker> logger)
         {
             this.logger = logger;
-            this.scriptRunner = scriptRunner;
-
-            engineRegistry.Register(services.GetOrCreate<PowershellEngine>());
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var result = await scriptRunner.Run("./test.ps1", stoppingToken);
-            logger.LogDebug(result.ToString());
+            logger.LogDebug("Worker not implemented.");
+            return Task.CompletedTask;
         }
     }
 }
