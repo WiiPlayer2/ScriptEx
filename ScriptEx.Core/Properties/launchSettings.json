@@ -2,13 +2,19 @@
   "profiles": {
     "ScriptEx.Core": {
       "commandName": "Project",
+      "launchBrowser": true,
       "environmentVariables": {
-        "DOTNET_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development"
       },
+      "applicationUrl": "http://localhost:5000/",
+      "launchUrl": "graphql",
       "dotnetRunMessages": "true"
     },
     "Docker": {
-      "commandName": "Docker"
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/graphql",
+      "publishAllPorts": true
     }
   }
 }

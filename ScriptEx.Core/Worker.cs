@@ -12,11 +12,11 @@ namespace ScriptEx.Core
 {
     internal class Worker : BackgroundService
     {
+        private readonly AppOptions appOptions;
+
         private readonly ILogger<Worker> logger;
 
         private readonly ScriptRunner scriptRunner;
-
-        private readonly AppOptions appOptions;
 
         public Worker(ILogger<Worker> logger, IServiceProvider services, IScriptEngineRegistry engineRegistry, ScriptRunner scriptRunner, IOptions<AppOptions> appOptions)
         {
@@ -30,7 +30,7 @@ namespace ScriptEx.Core
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var result = await scriptRunner.Run("./bin/Debug/net5.0/scripts/test.ps1", stoppingToken);
-            Console.WriteLine(result);
+            logger.LogDebug(result.ToString());
         }
     }
 }

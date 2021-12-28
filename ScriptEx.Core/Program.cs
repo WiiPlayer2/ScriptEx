@@ -1,8 +1,7 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using ScriptEx.Core.Internals;
-using ScriptEx.Shared;
+using Microsoft.Extensions.Logging;
 
 namespace ScriptEx.Core
 {
@@ -13,15 +12,16 @@ namespace ScriptEx.Core
             CreateHostBuilder(args).Build().Run();
         }
 
+        private static void ConfigureLogging(ILoggingBuilder logging)
+        {
+            logging.ClearProviders();
+            logging.AddLog4Net();
+        }
+
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureServices((hostContext, services) =>
-                {
-                    services.AddHostedService<Worker>();
-                    services.AddSingleton<IScriptEngineRegistry, ScriptEngineRegistry>();
-                    services.AddSingleton<ScriptRunner>();
-                    services.AddOptions<AppOptions>()
-                        .Bind(hostContext.Configuration.GetSection(AppOptions.SECTION));
-                });
+                .UseConsoleLifetime()
+                .ConfigureLogging(ConfigureLogging)
+                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
     }
 }
