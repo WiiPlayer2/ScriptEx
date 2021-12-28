@@ -3,16 +3,20 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using ScriptEx.Shared;
 
 namespace ScriptEx.Core.Internals
 {
-    internal class ScriptRunner
+    internal class ScriptRunner : IScriptRunner
     {
+        private readonly AppOptions appOptions;
+
         private readonly IScriptEngineRegistry engineRegistry;
 
-        public ScriptRunner(IScriptEngineRegistry engineRegistry)
+        public ScriptRunner(IOptions<AppOptions> appOptions, IScriptEngineRegistry engineRegistry)
         {
+            this.appOptions = appOptions.Value;
             this.engineRegistry = engineRegistry;
         }
 
@@ -22,16 +26,16 @@ namespace ScriptEx.Core.Internals
             if (engine is null)
                 return new ScriptResult(string.Empty, $"No valid engine for \"{file}\" found.", -1);
 
-            return await engine.Run(file, cancellationToken);
+            return await engine.Run(Path.Join(appOptions.ScriptsPath, file), cancellationToken);
         }
 
-        public async Task<ScriptResult> Execute(string language, string contents, CancellationToken cancellationToken = default)
+        public async Task<ScriptResult> Execute(string language, string script, CancellationToken cancellationToken = default)
         {
             var engine = FindEngineByLanguage(language);
             if (engine is null)
                 return new ScriptResult(string.Empty, $"No valid engine for language \"{language}\" found.", -1);
 
-            return await engine.Execute(contents, cancellationToken);
+            return await engine.Execute(script, cancellationToken);
         }
 
         private IScriptEngine? FindEngineByExtension(string fileExtension)

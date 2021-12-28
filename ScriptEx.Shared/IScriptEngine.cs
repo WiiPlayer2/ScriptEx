@@ -12,6 +12,6 @@ namespace ScriptEx.Shared
 
         Task<ScriptResult> Run(string file, CancellationToken cancellationToken = default);
 
-        Task<ScriptResult> Execute(string contents, CancellationToken cancellationToken = default);
+        Task<ScriptResult> Execute(string script, CancellationToken cancellationToken = default);
     }
 }

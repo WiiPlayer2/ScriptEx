@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ScriptEx.Core.Api.Mutations;
+using ScriptEx.Core.Api.Queries;
+using ScriptEx.Core.Api.Types;
 using ScriptEx.Core.Internals;
 using ScriptEx.Shared;
 
@@ -22,13 +25,22 @@ namespace ScriptEx.Core
         {
             services.AddHostedService<Worker>();
             services.AddSingleton<IScriptEngineRegistry, ScriptEngineRegistry>();
-            services.AddSingleton<ScriptRunner>();
+            services.AddSingleton<IScriptRunner, ScriptRunner>();
             services.AddOptions<AppOptions>()
                 .Bind(Configuration.GetSection(AppOptions.SECTION));
 
             // API
             services.AddGraphQLServer()
                 .AddInMemorySubscriptions()
+
+                // Types
+                .BindRuntimeType<IScriptEngine, ScriptEngineType>()
+
+                // Query
+                .AddQueryType<Query>()
+
+                // Mutation
+                .AddMutationType<Mutation>()
 
                 // Misc.
                 .ModifyRequestOptions(options => { options.IncludeExceptionDetails = true; });

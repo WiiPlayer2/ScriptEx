@@ -4,6 +4,6 @@ namespace ScriptEx.Shared
 {
     public record ScriptResult(
         string StandardOutput,
-        string ErrorOutput,
+        string StandardError,
         int ExitCode);
 }

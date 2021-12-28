@@ -22,9 +22,9 @@ namespace ScriptEx.Core.Engines
                 "-OutputFormat", "Text",
                 "-File", $"\"{file}\"");
 
-        public Task<ScriptResult> Execute(string contents, CancellationToken cancellationToken = default)
+        public Task<ScriptResult> Execute(string script, CancellationToken cancellationToken = default)
         {
-            var contentsRaw = Encoding.Unicode.GetBytes(contents);
+            var contentsRaw = Encoding.Unicode.GetBytes(script);
             var encodedCommand = Convert.ToBase64String(contentsRaw);
             return Invoke(
                 cancellationToken,
