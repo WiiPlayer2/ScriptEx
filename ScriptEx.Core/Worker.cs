@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using ScriptEx.Core.Engines;
 using ScriptEx.Core.Internals;
 using ScriptEx.Shared;
@@ -15,12 +16,15 @@ namespace ScriptEx.Core
 
         private readonly ScriptRunner scriptRunner;
 
-        public Worker(ILogger<Worker> logger, IScriptEngineRegistry engineRegistry, ScriptRunner scriptRunner)
+        private readonly AppOptions appOptions;
+
+        public Worker(ILogger<Worker> logger, IServiceProvider services, IScriptEngineRegistry engineRegistry, ScriptRunner scriptRunner, IOptions<AppOptions> appOptions)
         {
             this.logger = logger;
             this.scriptRunner = scriptRunner;
+            this.appOptions = appOptions.Value;
 
-            engineRegistry.Register(new PowershellEngine());
+            engineRegistry.Register(services.GetOrCreate<PowershellEngine>());
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

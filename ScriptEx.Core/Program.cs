@@ -20,6 +20,8 @@ namespace ScriptEx.Core
                     services.AddHostedService<Worker>();
                     services.AddSingleton<IScriptEngineRegistry, ScriptEngineRegistry>();
                     services.AddSingleton<ScriptRunner>();
+                    services.AddOptions<AppOptions>()
+                        .Bind(hostContext.Configuration.GetSection(AppOptions.SECTION));
                 });
     }
 }
