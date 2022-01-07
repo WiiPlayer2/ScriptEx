@@ -11,6 +11,9 @@ namespace ScriptEx.Core.Internals
     {
         private readonly ConcurrentDictionary<string, List<ScriptExecution>> data = new();
 
+        public IQueryable<ScriptExecution> GetHistory()
+            => data.SelectMany(o => GetHistory(o.Key)).ToList().AsQueryable();
+
         public IQueryable<ScriptExecution> GetHistory(string file)
         {
             if (!data.TryGetValue(file, out var entries))
@@ -37,9 +40,9 @@ namespace ScriptEx.Core.Internals
             return Task.CompletedTask;
         }
 
-        public Task AddHistory(string file, ScriptExecution item)
+        public Task AddHistory(ScriptExecution item)
         {
-            var entries = data.GetOrAdd(file, _ => new List<ScriptExecution>());
+            var entries = data.GetOrAdd(item.File, _ => new List<ScriptExecution>());
             lock (entries)
             {
                 entries.Add(item);

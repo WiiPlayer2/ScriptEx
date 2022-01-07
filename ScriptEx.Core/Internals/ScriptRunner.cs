@@ -36,7 +36,7 @@ namespace ScriptEx.Core.Internals
             var result = await engine.Run(scriptPath, cancellationToken);
             var endTime = DateTimeOffset.Now;
 
-            await historyRepository.AddHistory(pathFinder.GetFilePath(scriptPath), new ScriptExecution(startTime, endTime, string.Empty, result));
+            await historyRepository.AddHistory(new ScriptExecution(startTime, endTime, pathFinder.GetFilePath(scriptPath), string.Empty, result));
 
             return result;
         }

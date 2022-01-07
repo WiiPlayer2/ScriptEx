@@ -6,11 +6,13 @@ namespace ScriptEx.Shared
 {
     public interface IScriptHistoryRepository
     {
+        IQueryable<ScriptExecution> GetHistory();
+
         IQueryable<ScriptExecution> GetHistory(string file);
 
         Task PruneHistory(string file, DateTime beforeStartDate);
 
-        Task AddHistory(string file, ScriptExecution execution);
+        Task AddHistory(ScriptExecution execution);
 
         Task DeleteHistory(string file);
     }

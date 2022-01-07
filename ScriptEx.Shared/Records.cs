@@ -15,6 +15,7 @@ namespace ScriptEx.Shared
     public record ScriptExecution(
         DateTimeOffset StartTime,
         DateTimeOffset EndTime,
+        string File,
         string Arguments,
         ScriptResult Result)
     {
