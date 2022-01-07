@@ -56,7 +56,9 @@ namespace ScriptEx.Core.Internals
 
         public async Task<ScriptResult> Run(string relativePath, string arguments, CancellationToken cancellationToken = default)
         {
-            logger.LogDebug($"Running {relativePath} {arguments}...");
+            var cmd = $"{relativePath} {arguments}".Trim();
+            logger.LogDebug($"Running {cmd}...");
+
             var engine = engineRegistry.GetEngineForFile(relativePath);
             if (engine is null)
                 return new ScriptResult(string.Empty, $"No valid engine for \"{relativePath}\" found.", -1);
@@ -71,7 +73,7 @@ namespace ScriptEx.Core.Internals
             await topicEventSender.SendAsync(Subscription.TOPIC_SCRIPT_EXECUTED, execution, CancellationToken.None);
 
             logger.LogTrace(execution.ToString());
-            logger.LogDebug($"Ran {relativePath} {arguments} ({execution.Duration}) with exit code {result.ExitCode}.");
+            logger.LogDebug($"Ran {cmd} ({execution.Duration}) with exit code {result.ExitCode}.");
             return result;
         }
     }

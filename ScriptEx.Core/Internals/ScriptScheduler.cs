@@ -9,7 +9,7 @@ namespace ScriptEx.Core.Internals
 {
     public class ScriptScheduler : IAsyncDisposable
     {
-        private readonly List<(CronExpression Expression, string Arguments)> cronEntries = new();
+        private readonly List<Task> currentlyRunningTasks = new();
 
         private readonly CancellationTokenSource globalCancellationTokenSource = new();
 
@@ -18,8 +18,6 @@ namespace ScriptEx.Core.Internals
         private readonly IScriptHandler scriptHandler;
 
         private CancellationTokenSource? currentCancellationTokenSource;
-
-        private Task? currentlyScheduledTask;
 
         public ScriptScheduler(string relativePath, IScriptHandler scriptHandler)
         {
@@ -30,40 +28,54 @@ namespace ScriptEx.Core.Internals
         public async ValueTask DisposeAsync()
         {
             globalCancellationTokenSource?.Cancel();
-            if (currentlyScheduledTask == null)
-                return;
 
-            await currentlyScheduledTask.ContinueWith(_ => { });
-            currentlyScheduledTask = null;
+            var tasks = new List<Task>();
+            lock (currentlyRunningTasks)
+            {
+                tasks.AddRange(currentlyRunningTasks);
+            }
+
+            await Task.WhenAll(tasks.Select(o => o.ContinueWith(_ => { })));
         }
 
         public async Task Update()
         {
             currentCancellationTokenSource?.Cancel();
+            currentCancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(currentCancellationTokenSource.Token, globalCancellationTokenSource.Token).Token;
 
             var metaData = await scriptHandler.GetMetaData(relativePath);
-            cronEntries.Clear();
             if (metaData == null || metaData.CronEntries.Count == 0)
                 return;
 
-            cronEntries.AddRange(metaData.CronEntries.Select(o => (new CronExpression(o.Expression), o.Arguments)));
-            ScheduleNext();
+            foreach (var entry in metaData.CronEntries)
+            {
+                var expression = new CronExpression(entry.Expression);
+                ScheduleNext(expression, entry.Arguments, cancellationToken);
+            }
         }
 
-        private void ScheduleNext()
+        private void ScheduleNext(CronExpression expression, string arguments, CancellationToken cancellationToken)
         {
-            var now = DateTime.Now;
-            var nextExecutionExpression = cronEntries
-                .Select(o => (Time: o.Expression.NextOccurrence(now), o.Arguments))
-                .OrderBy(o => o.Item1)
-                .First();
+            var nextTime = expression.NextOccurrence(DateTime.Now);
 
-            currentCancellationTokenSource = new CancellationTokenSource();
-            var currentToken = CancellationTokenSource.CreateLinkedTokenSource(globalCancellationTokenSource.Token, currentCancellationTokenSource.Token).Token;
-            currentlyScheduledTask = Task.Run(() => RunScriptAt(nextExecutionExpression.Time, nextExecutionExpression.Arguments, currentToken), currentToken);
+            var task = Task.Run(() => RunScriptAt(expression, nextTime, arguments, cancellationToken), cancellationToken);
+
+            lock (currentlyRunningTasks)
+            {
+                currentlyRunningTasks.Add(task);
+            }
+
+            task.ContinueWith(t =>
+            {
+                lock (currentlyRunningTasks)
+                {
+                    currentlyRunningTasks.Remove(task);
+                }
+            });
         }
 
-        private async Task RunScriptAt(DateTime dateTime, string arguments, CancellationToken cancellationToken)
+        private async Task RunScriptAt(CronExpression expression, DateTime dateTime, string arguments, CancellationToken cancellationToken)
         {
             var now = DateTime.Now;
             var delay = dateTime - now;
@@ -72,7 +84,7 @@ namespace ScriptEx.Core.Internals
 
             await scriptHandler.Run(relativePath, arguments, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
-            ScheduleNext();
+            ScheduleNext(expression, arguments, cancellationToken);
         }
     }
 }
