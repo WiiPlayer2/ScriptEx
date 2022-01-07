@@ -13,10 +13,16 @@ namespace ScriptEx.Core.Internals
 
         private readonly IScriptEngineRegistry engineRegistry;
 
-        public ScriptRunner(IOptions<AppOptions> appOptions, IScriptEngineRegistry engineRegistry)
+        private readonly IScriptHistoryRepository historyRepository;
+
+        private readonly PathFinder pathFinder;
+
+        public ScriptRunner(IOptions<AppOptions> appOptions, IScriptEngineRegistry engineRegistry, IScriptHistoryRepository historyRepository, PathFinder pathFinder)
         {
             this.appOptions = appOptions.Value;
             this.engineRegistry = engineRegistry;
+            this.historyRepository = historyRepository;
+            this.pathFinder = pathFinder;
         }
 
         public async Task<ScriptResult> Run(string file, CancellationToken cancellationToken = default)
@@ -25,7 +31,14 @@ namespace ScriptEx.Core.Internals
             if (engine is null)
                 return new ScriptResult(string.Empty, $"No valid engine for \"{file}\" found.", -1);
 
-            return await engine.Run(Path.Join(appOptions.ScriptsPath, file), cancellationToken);
+            var scriptPath = Path.Join(appOptions.ScriptsPath, file);
+            var startTime = DateTimeOffset.Now;
+            var result = await engine.Run(scriptPath, cancellationToken);
+            var endTime = DateTimeOffset.Now;
+
+            await historyRepository.AddHistory(pathFinder.GetFilePath(scriptPath), new ScriptExecution(startTime, endTime, string.Empty, result));
+
+            return result;
         }
     }
 }

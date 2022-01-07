@@ -13,9 +13,11 @@ namespace ScriptEx.Shared
         int ExitCode);
 
     public record ScriptExecution(
-        DateTime StartTime,
-        DateTime EndTime,
-        TimeSpan Duration,
+        DateTimeOffset StartTime,
+        DateTimeOffset EndTime,
         string Arguments,
-        ScriptResult Result);
+        ScriptResult Result)
+    {
+        public TimeSpan Duration { get; } = EndTime - StartTime;
+    }
 }

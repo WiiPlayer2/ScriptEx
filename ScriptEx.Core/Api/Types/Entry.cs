@@ -4,10 +4,8 @@ using System.IO;
 using System.Linq;
 using HotChocolate;
 using HotChocolate.Types;
-using Microsoft.Extensions.Options;
 using ScriptEx.Core.Internals;
 using ScriptEx.Shared;
-using Path = System.IO.Path;
 
 namespace ScriptEx.Core.Api.Types
 {
@@ -37,5 +35,10 @@ namespace ScriptEx.Core.Api.Types
             var singleLineCommentSymbol = engineRegistry.GetEngineForFile(Name)?.SingleLineCommentSymbol;
             return singleLineCommentSymbol == null ? null : new ScriptMetaDataScanner(singleLineCommentSymbol).GetMetaData(File.ReadAllText(FullName));
         }
+
+        public IQueryable<ScriptExecution> GetHistory(
+            [Service] IScriptHistoryRepository historyRepository,
+            [Service] PathFinder pathFinder)
+            => historyRepository.GetHistory(pathFinder.GetFilePath(FullName));
     }
 }
