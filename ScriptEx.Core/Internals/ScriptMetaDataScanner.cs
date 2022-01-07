@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using ScriptEx.Shared;
 
 namespace ScriptEx.Core.Internals
@@ -8,6 +9,8 @@ namespace ScriptEx.Core.Internals
     public class ScriptMetaDataScanner
     {
         private const string KEY_CRON = "cron";
+
+        private static Regex regexCron = new Regex(@"(?<cron>[^\s]+(\ +[^\s]+){4})(\s+(?<arguments>.*))?");
 
         private readonly string metaDataIndicator;
 
@@ -40,28 +43,20 @@ namespace ScriptEx.Core.Internals
             => GetValues(metaData, KEY_CRON)
                 .Select(entry =>
                 {
-                    var splitBySpaces = entry.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                    if (splitBySpaces.Length < 5)
+                    var match = regexCron.Match(entry);
+                    if (!match.Success)
                         return default;
-
-                    var currentIndex = 0;
-                    for (var i = 0; i < 5; i++)
-                    {
-                        var spaceIndex = entry.IndexOf(' ', currentIndex);
-                        if (spaceIndex == -1)
-                        {
-                            currentIndex = entry.Length - 1;
-                            break;
-                        }
-
-                        currentIndex = entry.LastIndexOf(' ', spaceIndex);
-                    }
-
-                    var expression = string.Join(' ', entry[..currentIndex].Split(' ', StringSplitOptions.RemoveEmptyEntries));
-                    var arguments = entry[currentIndex..].Trim();
-                    return new CronEntry(expression, arguments);
+                    var cleanedExpression = string.Join(' ', match.Groups["cron"].Value.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+                    return new CronEntry(cleanedExpression, match.Groups["arguments"].Value.Trim());
                 })
                 .WhereNotNull()
                 .ToList();
+
+        public ScriptMetaData GetMetaData(string contents)
+        {
+            var entries = GetMetaDataLines(contents);
+            var cronEntries = GetCronEntries(entries);
+            return new(cronEntries);
+        }
     }
 }

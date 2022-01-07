@@ -18,7 +18,9 @@ namespace ScriptEx.Core.Api.Queries
         
         public IEnumerable<Entry> GetScripts(
             string? path,
-            [Service] IOptions<AppOptions> appOptions)
-            => new DirectoryEntry(string.Empty, Path.Join(appOptions.Value.ScriptsPath, path ?? ".")).GetScripts();
+            [Service] IOptions<AppOptions> appOptions,
+            [Service] IScriptEngineRegistry engineRegistry)
+            => new DirectoryEntry(string.Empty, Path.Join(appOptions.Value.ScriptsPath, path ?? "."))
+                .GetScripts(engineRegistry);
     }
 }

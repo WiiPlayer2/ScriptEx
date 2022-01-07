@@ -13,6 +13,8 @@ namespace ScriptEx.Core.Engines
 
         public string LanguageIdentifier => "powershell";
 
+        public string SingleLineCommentSymbol => "#";
+
         public Task<ScriptResult> Run(string file, CancellationToken cancellationToken = default) =>
             Invoke(
                 cancellationToken,

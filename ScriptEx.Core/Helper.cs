@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using ScriptEx.Shared;
 
 namespace ScriptEx.Core
 {
@@ -26,5 +28,11 @@ namespace ScriptEx.Core
 
         public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> sequence)
             => sequence.Where(o => o is not null).Select(o => o!);
+
+        public static IScriptEngine? GetEngineForFile(this IScriptEngineRegistry engineRegistry, string path)
+        {
+            var fileExtension = Path.GetExtension(path);
+            return engineRegistry.RegisteredEngines.SingleOrDefault(o => o.FileExtension.Equals(fileExtension, StringComparison.InvariantCultureIgnoreCase));
+        }
     }
 }
