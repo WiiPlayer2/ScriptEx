@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Subscriptions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ScriptEx.Core.Api.Subscriptions;
 using ScriptEx.Shared;
@@ -17,11 +18,14 @@ namespace ScriptEx.Core.Internals
 
         private readonly IScriptHistoryRepository historyRepository;
 
+        private readonly ILogger logger;
+
         private readonly PathFinder pathFinder;
 
         private readonly ITopicEventSender topicEventSender;
 
         public ScriptHandler(
+            ILogger<ScriptHandler> logger,
             IOptions<AppOptions> appOptions,
             IScriptEngineRegistry engineRegistry,
             IScriptHistoryRepository historyRepository,
@@ -29,6 +33,7 @@ namespace ScriptEx.Core.Internals
             ITopicEventSender topicEventSender)
         {
             this.appOptions = appOptions.Value;
+            this.logger = logger;
             this.engineRegistry = engineRegistry;
             this.historyRepository = historyRepository;
             this.pathFinder = pathFinder;
@@ -51,6 +56,7 @@ namespace ScriptEx.Core.Internals
 
         public async Task<ScriptResult> Run(string relativePath, CancellationToken cancellationToken = default)
         {
+            logger.LogDebug($"Running {relativePath}...");
             var engine = engineRegistry.GetEngineForFile(relativePath);
             if (engine is null)
                 return new ScriptResult(string.Empty, $"No valid engine for \"{relativePath}\" found.", -1);
@@ -64,6 +70,7 @@ namespace ScriptEx.Core.Internals
             await historyRepository.AddHistory(execution);
             await topicEventSender.SendAsync(Subscription.TOPIC_SCRIPT_EXECUTED, execution, CancellationToken.None);
 
+            logger.LogDebug($"Ran {relativePath} ({execution.Duration}) with exit code {result.ExitCode}.");
             return result;
         }
     }

@@ -6,11 +6,14 @@ namespace ScriptEx.Core.Internals
 {
     public class PathFinder
     {
+        private readonly string basePath;
+
         private readonly Uri baseUri;
 
         public PathFinder(IOptions<AppOptions> appOptions)
         {
-            baseUri = new Uri(Path.GetFullPath(appOptions.Value.ScriptsPath + Path.DirectorySeparatorChar));
+            basePath = Path.GetFullPath(appOptions.Value.ScriptsPath);
+            baseUri = new Uri(basePath + Path.DirectorySeparatorChar);
         }
 
         public string GetRelativePath(string filePath)
@@ -21,6 +24,6 @@ namespace ScriptEx.Core.Internals
         }
 
         public string GetAbsolutePath(string relativePath)
-            => Path.Combine(baseUri.ToString(), relativePath);
+            => Path.Combine(basePath, relativePath);
     }
 }

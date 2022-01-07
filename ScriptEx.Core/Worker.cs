@@ -3,9 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using ScriptEx.Core.Engines;
 using ScriptEx.Core.Internals;
-using ScriptEx.Shared;
 
 namespace ScriptEx.Core
 {
@@ -13,15 +11,17 @@ namespace ScriptEx.Core
     {
         private readonly ILogger<Worker> logger;
 
-        public Worker(ILogger<Worker> logger)
+        private readonly ScriptScheduleService scriptScheduleService;
+
+        public Worker(ILogger<Worker> logger, ScriptScheduleService scriptScheduleService)
         {
             this.logger = logger;
+            this.scriptScheduleService = scriptScheduleService;
         }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            logger.LogDebug("Worker not implemented.");
-            return Task.CompletedTask;
+            await scriptScheduleService.UpdateAll();
         }
     }
 }

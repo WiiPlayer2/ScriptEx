@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ScriptEx.Shared;
 using Shuttle.Core.Cron;
 
 namespace ScriptEx.Core.Internals
 {
     public class ScriptScheduler : IAsyncDisposable
     {
-        private readonly List<CronEntry> cronEntries = new();
+        private readonly List<(CronExpression Expression, string Arguments)> cronEntries = new();
 
         private readonly CancellationTokenSource globalCancellationTokenSource = new();
 
@@ -47,14 +46,18 @@ namespace ScriptEx.Core.Internals
             if (metaData == null || metaData.CronEntries.Count == 0)
                 return;
 
-            cronEntries.AddRange(metaData.CronEntries);
+            cronEntries.AddRange(metaData.CronEntries.Select(o => (new CronExpression(o.Expression), o.Arguments)));
             ScheduleNext();
         }
 
         private void ScheduleNext()
         {
             var now = DateTime.Now;
-            var nextExecutionExpression = cronEntries.Select(o => (Time: new CronExpression(o.Expression).GetNextOccurrence(now), o.Arguments)).OrderBy(o => o.Item1).First();
+            var nextExecutionExpression = cronEntries
+                .Select(o => (Time: o.Expression.NextOccurrence(now), o.Arguments))
+                .OrderBy(o => o.Item1)
+                .First();
+
             currentCancellationTokenSource = new CancellationTokenSource();
             var currentToken = CancellationTokenSource.CreateLinkedTokenSource(globalCancellationTokenSource.Token, currentCancellationTokenSource.Token).Token;
             currentlyScheduledTask = Task.Run(() => RunScriptAt(nextExecutionExpression.Time, nextExecutionExpression.Arguments, currentToken), currentToken);
@@ -62,7 +65,11 @@ namespace ScriptEx.Core.Internals
 
         private async Task RunScriptAt(DateTime dateTime, string arguments, CancellationToken cancellationToken)
         {
-            await Task.Delay(dateTime - DateTime.Now, cancellationToken);
+            var now = DateTime.Now;
+            var delay = dateTime - now;
+            if (delay >= TimeSpan.Zero)
+                await Task.Delay(delay, cancellationToken);
+
             await scriptHandler.Run(relativePath, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             ScheduleNext();
