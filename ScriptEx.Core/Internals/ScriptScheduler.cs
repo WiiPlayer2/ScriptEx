@@ -70,7 +70,7 @@ namespace ScriptEx.Core.Internals
             if (delay >= TimeSpan.Zero)
                 await Task.Delay(delay, cancellationToken);
 
-            await scriptHandler.Run(relativePath, cancellationToken);
+            await scriptHandler.Run(relativePath, arguments, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             ScheduleNext();
         }

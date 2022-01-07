@@ -54,23 +54,24 @@ namespace ScriptEx.Core.Internals
             return new ScriptMetaDataScanner(engine.SingleLineCommentSymbol).GetMetaData(contents);
         }
 
-        public async Task<ScriptResult> Run(string relativePath, CancellationToken cancellationToken = default)
+        public async Task<ScriptResult> Run(string relativePath, string arguments, CancellationToken cancellationToken = default)
         {
-            logger.LogDebug($"Running {relativePath}...");
+            logger.LogDebug($"Running {relativePath} {arguments}...");
             var engine = engineRegistry.GetEngineForFile(relativePath);
             if (engine is null)
                 return new ScriptResult(string.Empty, $"No valid engine for \"{relativePath}\" found.", -1);
 
             var scriptPath = pathFinder.GetAbsolutePath(relativePath);
             var startTime = DateTimeOffset.Now;
-            var result = await engine.Run(scriptPath, cancellationToken);
+            var result = await engine.Run(scriptPath, arguments, cancellationToken);
             var endTime = DateTimeOffset.Now;
 
-            var execution = new ScriptExecution(startTime, endTime, pathFinder.GetRelativePath(scriptPath), string.Empty, result);
+            var execution = new ScriptExecution(startTime, endTime, pathFinder.GetRelativePath(scriptPath), arguments, result);
             await historyRepository.AddHistory(execution);
             await topicEventSender.SendAsync(Subscription.TOPIC_SCRIPT_EXECUTED, execution, CancellationToken.None);
 
-            logger.LogDebug($"Ran {relativePath} ({execution.Duration}) with exit code {result.ExitCode}.");
+            logger.LogTrace(execution.ToString());
+            logger.LogDebug($"Ran {relativePath} {arguments} ({execution.Duration}) with exit code {result.ExitCode}.");
             return result;
         }
     }

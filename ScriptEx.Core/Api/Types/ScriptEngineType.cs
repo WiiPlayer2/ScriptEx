@@ -9,7 +9,7 @@ namespace ScriptEx.Core.Api.Types
         protected override void Configure(IObjectTypeDescriptor<IScriptEngine> descriptor)
         {
             descriptor.Name("ScriptEngine");
-            descriptor.Field(o => o.Run(default!, default))
+            descriptor.Field(o => o.Run(default!, default!, default))
                 .Ignore();
         }
     }

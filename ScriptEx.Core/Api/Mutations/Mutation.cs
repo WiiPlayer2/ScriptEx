@@ -10,7 +10,8 @@ namespace ScriptEx.Core.Api.Mutations
     {
         public Task<ScriptResult> Run(
             string file,
+            string arguments,
             [Service] IScriptHandler scriptHandler)
-            => scriptHandler.Run(file);
+            => scriptHandler.Run(file, arguments);
     }
 }

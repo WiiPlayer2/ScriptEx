@@ -9,6 +9,6 @@ namespace ScriptEx.Core.Internals
     {
         Task<ScriptMetaData?> GetMetaData(string relativePath, CancellationToken cancellationToken = default);
 
-        Task<ScriptResult> Run(string relativePath, CancellationToken cancellationToken = default);
+        Task<ScriptResult> Run(string relativePath, string arguments, CancellationToken cancellationToken = default);
     }
 }

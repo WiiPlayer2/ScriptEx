@@ -14,14 +14,15 @@ namespace ScriptEx.Core.Engines
 
         public string SingleLineCommentSymbol => "#";
 
-        public Task<ScriptResult> Run(string file, CancellationToken cancellationToken = default) =>
+        public Task<ScriptResult> Run(string file, string arguments, CancellationToken cancellationToken = default) =>
             Invoke(
                 cancellationToken,
                 "-ExecutionPolicy", "Unrestricted",
                 "-NonInteractive",
                 "-NoLogo",
                 "-OutputFormat", "Text",
-                "-File", $"\"{file}\"");
+                "-File", $"\"{file}\"",
+                arguments);
 
         private async Task<ScriptResult> Invoke(CancellationToken cancellationToken, params string[] arguments)
         {
