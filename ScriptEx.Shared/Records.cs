@@ -11,4 +11,11 @@ namespace ScriptEx.Shared
         string StandardOutput,
         string StandardError,
         int ExitCode);
+
+    public record ScriptExecution(
+        DateTime StartTime,
+        DateTime EndTime,
+        TimeSpan Duration,
+        string Arguments,
+        ScriptResult Result);
 }

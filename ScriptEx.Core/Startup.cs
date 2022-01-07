@@ -26,6 +26,7 @@ namespace ScriptEx.Core
             services.AddHostedService<Worker>();
             services.AddSingleton<IScriptEngineRegistry, ScriptEngineRegistry>();
             services.AddSingleton<IScriptRunner, ScriptRunner>();
+            services.AddSingleton<IScriptHistoryRepository, InMemoryScriptHistoryRepository>();
             services.AddOptions<AppOptions>()
                 .Bind(Configuration.GetSection(AppOptions.SECTION));
 
