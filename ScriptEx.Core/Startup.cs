@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ScriptEx.Core.Api.Mutations;
 using ScriptEx.Core.Api.Queries;
+using ScriptEx.Core.Api.Subscriptions;
 using ScriptEx.Core.Api.Types;
 using ScriptEx.Core.Internals;
 using ScriptEx.Shared;
@@ -46,6 +47,9 @@ namespace ScriptEx.Core
 
                 // Mutation
                 .AddMutationType<Mutation>()
+
+                // Subscription
+                .AddSubscriptionType<Subscription>()
 
                 // Misc.
                 .ModifyRequestOptions(options => { options.IncludeExceptionDetails = true; });

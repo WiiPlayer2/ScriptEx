@@ -2,7 +2,9 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Subscriptions;
 using Microsoft.Extensions.Options;
+using ScriptEx.Core.Api.Subscriptions;
 using ScriptEx.Shared;
 
 namespace ScriptEx.Core.Internals
@@ -17,12 +19,15 @@ namespace ScriptEx.Core.Internals
 
         private readonly PathFinder pathFinder;
 
-        public ScriptRunner(IOptions<AppOptions> appOptions, IScriptEngineRegistry engineRegistry, IScriptHistoryRepository historyRepository, PathFinder pathFinder)
+        private readonly ITopicEventSender topicEventSender;
+
+        public ScriptRunner(IOptions<AppOptions> appOptions, IScriptEngineRegistry engineRegistry, IScriptHistoryRepository historyRepository, PathFinder pathFinder, ITopicEventSender topicEventSender)
         {
             this.appOptions = appOptions.Value;
             this.engineRegistry = engineRegistry;
             this.historyRepository = historyRepository;
             this.pathFinder = pathFinder;
+            this.topicEventSender = topicEventSender;
         }
 
         public async Task<ScriptResult> Run(string file, CancellationToken cancellationToken = default)
@@ -36,7 +41,9 @@ namespace ScriptEx.Core.Internals
             var result = await engine.Run(scriptPath, cancellationToken);
             var endTime = DateTimeOffset.Now;
 
-            await historyRepository.AddHistory(new ScriptExecution(startTime, endTime, pathFinder.GetFilePath(scriptPath), string.Empty, result));
+            var execution = new ScriptExecution(startTime, endTime, pathFinder.GetFilePath(scriptPath), string.Empty, result);
+            await historyRepository.AddHistory(execution);
+            await topicEventSender.SendAsync(Subscription.TOPIC_SCRIPT_EXECUTED, execution);
 
             return result;
         }
