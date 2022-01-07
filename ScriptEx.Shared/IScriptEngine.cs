@@ -13,7 +13,5 @@ namespace ScriptEx.Shared
         string SingleLineCommentSymbol { get; }
 
         Task<ScriptResult> Run(string file, CancellationToken cancellationToken = default);
-
-        Task<ScriptResult> Execute(string script, CancellationToken cancellationToken = default);
     }
 }

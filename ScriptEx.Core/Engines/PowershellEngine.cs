@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ScriptEx.Shared;
@@ -23,19 +22,6 @@ namespace ScriptEx.Core.Engines
                 "-NoLogo",
                 "-OutputFormat", "Text",
                 "-File", $"\"{file}\"");
-
-        public Task<ScriptResult> Execute(string script, CancellationToken cancellationToken = default)
-        {
-            var contentsRaw = Encoding.Unicode.GetBytes(script);
-            var encodedCommand = Convert.ToBase64String(contentsRaw);
-            return Invoke(
-                cancellationToken,
-                "-ExecutionPolicy", "Unrestricted",
-                "-NonInteractive",
-                "-NoLogo",
-                "-OutputFormat", "Text",
-                "-EncodedCommand", encodedCommand);
-        }
 
         private async Task<ScriptResult> Invoke(CancellationToken cancellationToken, params string[] arguments)
         {

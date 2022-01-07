@@ -11,8 +11,6 @@ namespace ScriptEx.Core.Api.Types
             descriptor.Name("ScriptEngine");
             descriptor.Field(o => o.Run(default!, default))
                 .Ignore();
-            descriptor.Field(o => o.Execute(default!, default))
-                .Ignore();
         }
     }
 }
