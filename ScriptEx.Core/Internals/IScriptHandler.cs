@@ -7,8 +7,8 @@ namespace ScriptEx.Core.Internals
 {
     public interface IScriptHandler
     {
-        Task<ScriptMetaData?> GetMetaData(string file, CancellationToken cancellationToken = default);
+        Task<ScriptMetaData?> GetMetaData(string relativePath, CancellationToken cancellationToken = default);
 
-        Task<ScriptResult> Run(string file, CancellationToken cancellationToken = default);
+        Task<ScriptResult> Run(string relativePath, CancellationToken cancellationToken = default);
     }
 }

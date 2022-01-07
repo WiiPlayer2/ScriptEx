@@ -13,11 +13,14 @@ namespace ScriptEx.Core.Internals
             baseUri = new Uri(Path.GetFullPath(appOptions.Value.ScriptsPath + Path.DirectorySeparatorChar));
         }
 
-        public string GetFilePath(string filePath)
+        public string GetRelativePath(string filePath)
         {
             var filePathUri = new Uri(Path.GetFullPath(filePath));
             var relativeUri = baseUri.MakeRelativeUri(filePathUri);
             return relativeUri.ToString();
         }
+
+        public string GetAbsolutePath(string relativePath)
+            => Path.Combine(baseUri.ToString(), relativePath);
     }
 }

@@ -39,6 +39,6 @@ namespace ScriptEx.Core.Api.Types
         public IQueryable<ScriptExecution> GetHistory(
             [Service] IScriptHistoryRepository historyRepository,
             [Service] PathFinder pathFinder)
-            => historyRepository.GetHistory(pathFinder.GetFilePath(FullName));
+            => historyRepository.GetHistory(pathFinder.GetRelativePath(FullName));
     }
 }

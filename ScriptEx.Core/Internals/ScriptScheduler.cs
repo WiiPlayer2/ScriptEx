@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,17 +14,17 @@ namespace ScriptEx.Core.Internals
 
         private readonly CancellationTokenSource globalCancellationTokenSource = new();
 
-        private readonly IScriptHandler scriptHandler;
+        private readonly string relativePath;
 
-        private readonly string scriptPath;
+        private readonly IScriptHandler scriptHandler;
 
         private CancellationTokenSource? currentCancellationTokenSource;
 
         private Task? currentlyScheduledTask;
 
-        public ScriptScheduler(string scriptPath, IScriptHandler scriptHandler)
+        public ScriptScheduler(string relativePath, IScriptHandler scriptHandler)
         {
-            this.scriptPath = scriptPath;
+            this.relativePath = relativePath;
             this.scriptHandler = scriptHandler;
         }
 
@@ -43,10 +42,7 @@ namespace ScriptEx.Core.Internals
         {
             currentCancellationTokenSource?.Cancel();
 
-            if (!File.Exists(scriptPath))
-                return;
-
-            var metaData = await scriptHandler.GetMetaData(scriptPath);
+            var metaData = await scriptHandler.GetMetaData(relativePath);
             cronEntries.Clear();
             if (metaData == null || metaData.CronEntries.Count == 0)
                 return;
@@ -67,7 +63,7 @@ namespace ScriptEx.Core.Internals
         private async Task RunScriptAt(DateTime dateTime, string arguments, CancellationToken cancellationToken)
         {
             await Task.Delay(dateTime - DateTime.Now, cancellationToken);
-            await scriptHandler.Run(scriptPath, cancellationToken);
+            await scriptHandler.Run(relativePath, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             ScheduleNext();
         }
