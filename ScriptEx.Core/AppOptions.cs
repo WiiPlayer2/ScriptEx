@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ScriptEx.Core
 {
-    internal class AppOptions
+    public class AppOptions
     {
         public const string SECTION = "App";
 
