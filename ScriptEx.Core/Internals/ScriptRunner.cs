@@ -43,7 +43,7 @@ namespace ScriptEx.Core.Internals
 
             var execution = new ScriptExecution(startTime, endTime, pathFinder.GetFilePath(scriptPath), string.Empty, result);
             await historyRepository.AddHistory(execution);
-            await topicEventSender.SendAsync(Subscription.TOPIC_SCRIPT_EXECUTED, execution);
+            await topicEventSender.SendAsync(Subscription.TOPIC_SCRIPT_EXECUTED, execution, CancellationToken.None);
 
             return result;
         }
