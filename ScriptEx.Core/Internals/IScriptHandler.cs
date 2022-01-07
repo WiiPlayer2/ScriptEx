@@ -5,8 +5,10 @@ using ScriptEx.Shared;
 
 namespace ScriptEx.Core.Internals
 {
-    public interface IScriptRunner
+    public interface IScriptHandler
     {
+        Task<ScriptMetaData?> GetMetaData(string file, CancellationToken cancellationToken = default);
+
         Task<ScriptResult> Run(string file, CancellationToken cancellationToken = default);
     }
 }

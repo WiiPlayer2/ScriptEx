@@ -9,7 +9,7 @@ using ScriptEx.Shared;
 
 namespace ScriptEx.Core.Internals
 {
-    internal class ScriptRunner : IScriptRunner
+    internal class ScriptHandler : IScriptHandler
     {
         private readonly AppOptions appOptions;
 
@@ -21,13 +21,23 @@ namespace ScriptEx.Core.Internals
 
         private readonly ITopicEventSender topicEventSender;
 
-        public ScriptRunner(IOptions<AppOptions> appOptions, IScriptEngineRegistry engineRegistry, IScriptHistoryRepository historyRepository, PathFinder pathFinder, ITopicEventSender topicEventSender)
+        public ScriptHandler(IOptions<AppOptions> appOptions, IScriptEngineRegistry engineRegistry, IScriptHistoryRepository historyRepository, PathFinder pathFinder, ITopicEventSender topicEventSender)
         {
             this.appOptions = appOptions.Value;
             this.engineRegistry = engineRegistry;
             this.historyRepository = historyRepository;
             this.pathFinder = pathFinder;
             this.topicEventSender = topicEventSender;
+        }
+
+        public async Task<ScriptMetaData?> GetMetaData(string file, CancellationToken cancellationToken = default)
+        {
+            var engine = engineRegistry.GetEngineForFile(file);
+            if (engine == null)
+                return null;
+
+            var contents = await File.ReadAllTextAsync(file, cancellationToken);
+            return new ScriptMetaDataScanner(engine.SingleLineCommentSymbol).GetMetaData(contents);
         }
 
         public async Task<ScriptResult> Run(string file, CancellationToken cancellationToken = default)

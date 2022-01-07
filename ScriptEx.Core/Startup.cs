@@ -26,7 +26,7 @@ namespace ScriptEx.Core
         {
             services.AddHostedService<Worker>();
             services.AddSingleton<IScriptEngineRegistry, ScriptEngineRegistry>();
-            services.AddSingleton<IScriptRunner, ScriptRunner>();
+            services.AddSingleton<IScriptHandler, ScriptHandler>();
             services.AddSingleton<IScriptHistoryRepository, InMemoryScriptHistoryRepository>();
             services.AddSingleton<PathFinder>();
             services.AddOptions<AppOptions>()
