@@ -23,5 +23,8 @@ namespace ScriptEx.Core
             service = constructor.Invoke(args);
             return service;
         }
+
+        public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> sequence)
+            => sequence.Where(o => o is not null).Select(o => o!);
     }
 }
