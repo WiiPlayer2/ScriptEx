@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using ScriptEx.Core.Engines;
 using ScriptEx.Shared;
 
@@ -10,9 +11,10 @@ namespace ScriptEx.Core.Internals
     {
         private readonly HashSet<IScriptEngine> engines = new();
 
-        public ScriptEngineRegistry(IServiceProvider services)
+        public ScriptEngineRegistry(IOptions<AppOptions> appOptions)
         {
-            Register(services.GetOrCreate<PowershellEngine>());
+            foreach (var engineConfiguration in appOptions.Value.Engines)
+                Register(new ConfiguredEngine(engineConfiguration));
         }
 
         public IReadOnlyCollection<IScriptEngine> RegisteredEngines => engines;
