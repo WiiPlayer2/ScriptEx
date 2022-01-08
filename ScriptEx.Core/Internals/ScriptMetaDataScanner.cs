@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using ScriptEx.Shared;
+using Shuttle.Core.Cron;
 
 namespace ScriptEx.Core.Internals
 {
@@ -10,13 +11,13 @@ namespace ScriptEx.Core.Internals
     {
         private const string KEY_CRON = "cron";
 
-        private static Regex regexCron = new Regex(@"(?<cron>[^\s]+(\ +[^\s]+){4})(\s+(?<arguments>.*))?");
+        private static readonly Regex regexCron = new(@"(?<cron>[^\s]+(\ +[^\s]+){4})(\s+(?<arguments>.*))?");
 
         private readonly string metaDataIndicator;
 
         public ScriptMetaDataScanner(string singleLineComment)
         {
-            this.metaDataIndicator = $"{singleLineComment}:";
+            metaDataIndicator = $"{singleLineComment}:";
         }
 
         public IReadOnlyList<(string Key, string Value)> GetMetaDataLines(string contents) =>
@@ -46,7 +47,17 @@ namespace ScriptEx.Core.Internals
                     var match = regexCron.Match(entry);
                     if (!match.Success)
                         return default;
+
                     var cleanedExpression = string.Join(' ', match.Groups["cron"].Value.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+                    try
+                    {
+                        _ = new CronExpression(cleanedExpression);
+                    }
+                    catch (CronException)
+                    {
+                        return default;
+                    }
+
                     return new CronEntry(cleanedExpression, match.Groups["arguments"].Value.Trim());
                 })
                 .WhereNotNull()
@@ -56,7 +67,7 @@ namespace ScriptEx.Core.Internals
         {
             var entries = GetMetaDataLines(contents);
             var cronEntries = GetCronEntries(entries);
-            return new(cronEntries);
+            return new ScriptMetaData(cronEntries);
         }
     }
 }
