@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -81,7 +82,11 @@ namespace ScriptEx.Core.Internals
             var scriptPath = pathFinder.GetAbsolutePath(relativePath);
             var timedCancellationTokenSource = new CancellationTokenSource(timeout ?? metaData.DefaultTimeout ?? appOptions.DefaultTimeout);
             var linkedCancellationToken = CancellationTokenSource.CreateLinkedTokenSource(timedCancellationTokenSource.Token, cancellationToken).Token;
-            var environment = environmentResolver.ResolveEnvironmentVariablesFor(relativePath);
+            var environment = new Dictionary<string, string>
+            {
+                {"NO_COLOR", "yes"}, // see https://no-color.org/
+            };
+            environment.Merge(environmentResolver.ResolveEnvironmentVariablesFor(relativePath));
 
             var startTime = DateTimeOffset.Now;
             var result = await engine.Run(scriptPath, arguments, environment, linkedCancellationToken)

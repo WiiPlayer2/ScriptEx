@@ -26,8 +26,7 @@ namespace ScriptEx.Core.Internals
                 return environmentVariables;
 
             var baseEnvironmentVariables = new Dictionary<string, string>(ResolveEnvironmentVariablesFor(directoryName));
-            foreach (var (key, value) in environmentVariables)
-                baseEnvironmentVariables[key] = value;
+            baseEnvironmentVariables.Merge(environmentVariables);
             return baseEnvironmentVariables;
         }
 

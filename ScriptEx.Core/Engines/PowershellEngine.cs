@@ -8,13 +8,7 @@ namespace ScriptEx.Core.Engines
 {
     internal class PowershellEngine : ExecutableEngine
     {
-        public PowershellEngine() : base("pwsh") { }
-
-        public override string FileExtension => ".ps1";
-
-        public override string LanguageIdentifier => "powershell";
-
-        public override string SingleLineCommentSymbol => "#";
+        public PowershellEngine() : base("pwsh", ".ps1", "powershell", "#") { }
 
         public override Task<ScriptResult> Run(string file, string arguments, IReadOnlyDictionary<string, string> environment, CancellationToken cancellationToken = default) =>
             Invoke(

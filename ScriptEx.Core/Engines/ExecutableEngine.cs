@@ -11,16 +11,19 @@ namespace ScriptEx.Core.Engines
     {
         private readonly string command;
 
-        protected ExecutableEngine(string command)
+        protected ExecutableEngine(string command, string fileExtension, string languageIdentifier, string singleLineCommentSymbol)
         {
             this.command = command;
+            FileExtension = fileExtension;
+            LanguageIdentifier = languageIdentifier;
+            SingleLineCommentSymbol = singleLineCommentSymbol;
         }
 
-        public abstract string FileExtension { get; }
+        public string FileExtension { get; }
 
-        public abstract string LanguageIdentifier { get; }
+        public string LanguageIdentifier { get; }
 
-        public abstract string SingleLineCommentSymbol { get; }
+        public string SingleLineCommentSymbol { get; }
 
         public abstract Task<ScriptResult> Run(string file, string arguments, IReadOnlyDictionary<string, string> environment, CancellationToken cancellationToken = default);
 

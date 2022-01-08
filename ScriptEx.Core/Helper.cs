@@ -33,6 +33,12 @@ namespace ScriptEx.Core
             return engineRegistry.RegisteredEngines.SingleOrDefault(o => o.FileExtension.Equals(fileExtension, StringComparison.InvariantCultureIgnoreCase));
         }
 
+        public static void Merge(this IDictionary<string, string> dict, IReadOnlyDictionary<string, string> mergeValues)
+        {
+            foreach (var (key, value) in mergeValues)
+                dict[key] = value;
+        }
+
         public static async Task<T?> IgnoreCancellation<T>(this Task<T> task)
         {
             try
