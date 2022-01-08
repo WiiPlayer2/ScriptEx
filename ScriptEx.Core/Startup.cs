@@ -30,6 +30,7 @@ namespace ScriptEx.Core
             services.AddSingleton<IScriptHistoryRepository, InMemoryScriptHistoryRepository>();
             services.AddSingleton<ScriptScheduleService>();
             services.AddSingleton<PathFinder>();
+            services.AddSingleton<EnvironmentResolver>();
             services.AddOptions<AppOptions>()
                 .Bind(Configuration.GetSection(AppOptions.SECTION));
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,6 +13,6 @@ namespace ScriptEx.Shared
 
         string SingleLineCommentSymbol { get; }
 
-        Task<ScriptResult> Run(string file, string arguments, CancellationToken cancellationToken = default);
+        Task<ScriptResult> Run(string file, string arguments, IReadOnlyDictionary<string, string> environment, CancellationToken cancellationToken = default);
     }
 }

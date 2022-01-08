@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,9 +15,10 @@ namespace ScriptEx.Core.Engines
 
         public string SingleLineCommentSymbol => "#";
 
-        public Task<ScriptResult> Run(string file, string arguments, CancellationToken cancellationToken = default) =>
+        public Task<ScriptResult> Run(string file, string arguments, IReadOnlyDictionary<string, string> environment, CancellationToken cancellationToken = default) =>
             Invoke(
                 cancellationToken,
+                environment,
                 "-ExecutionPolicy", "Unrestricted",
                 "-NonInteractive",
                 "-NoLogo",
@@ -24,7 +26,7 @@ namespace ScriptEx.Core.Engines
                 "-File", $"\"{file}\"",
                 arguments);
 
-        private async Task<ScriptResult> Invoke(CancellationToken cancellationToken, params string[] arguments)
+        private async Task<ScriptResult> Invoke(CancellationToken cancellationToken, IReadOnlyDictionary<string, string> environment, params string[] arguments)
         {
             var process = new Process
             {
@@ -38,6 +40,8 @@ namespace ScriptEx.Core.Engines
                 },
                 EnableRaisingEvents = true,
             };
+            foreach (var (key, value) in environment)
+                process.StartInfo.Environment[key] = value;
 
             process.Start();
             cancellationToken.Register(() => process.Kill(true));

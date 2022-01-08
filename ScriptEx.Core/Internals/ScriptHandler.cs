@@ -16,6 +16,8 @@ namespace ScriptEx.Core.Internals
 
         private readonly IScriptEngineRegistry engineRegistry;
 
+        private readonly EnvironmentResolver environmentResolver;
+
         private readonly IScriptHistoryRepository historyRepository;
 
         private readonly ILogger logger;
@@ -30,7 +32,8 @@ namespace ScriptEx.Core.Internals
             IScriptEngineRegistry engineRegistry,
             IScriptHistoryRepository historyRepository,
             PathFinder pathFinder,
-            ITopicEventSender topicEventSender)
+            ITopicEventSender topicEventSender,
+            EnvironmentResolver environmentResolver)
         {
             this.appOptions = appOptions.Value;
             this.logger = logger;
@@ -38,6 +41,7 @@ namespace ScriptEx.Core.Internals
             this.historyRepository = historyRepository;
             this.pathFinder = pathFinder;
             this.topicEventSender = topicEventSender;
+            this.environmentResolver = environmentResolver;
         }
 
         public async Task<ScriptMetaData?> GetMetaData(string relativePath, CancellationToken cancellationToken = default)
@@ -77,8 +81,10 @@ namespace ScriptEx.Core.Internals
             var scriptPath = pathFinder.GetAbsolutePath(relativePath);
             var timedCancellationTokenSource = new CancellationTokenSource(timeout ?? metaData.DefaultTimeout ?? appOptions.DefaultTimeout);
             var linkedCancellationToken = CancellationTokenSource.CreateLinkedTokenSource(timedCancellationTokenSource.Token, cancellationToken).Token;
+            var environment = environmentResolver.ResolveEnvironmentVariablesFor(relativePath);
+
             var startTime = DateTimeOffset.Now;
-            var result = await engine.Run(scriptPath, arguments, linkedCancellationToken)
+            var result = await engine.Run(scriptPath, arguments, environment, linkedCancellationToken)
                 .IgnoreCancellation()
                 .ButAsync(() => new ScriptResult(string.Empty, "Engine failed to return cooperatively.", -1));
             var endTime = DateTimeOffset.Now;
