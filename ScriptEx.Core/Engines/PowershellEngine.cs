@@ -1,21 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using ScriptEx.Shared;
 
 namespace ScriptEx.Core.Engines
 {
-    internal class PowershellEngine : IScriptEngine
+    internal class PowershellEngine : ExecutableEngine
     {
-        public string FileExtension => ".ps1";
+        public PowershellEngine() : base("pwsh") { }
 
-        public string LanguageIdentifier => "powershell";
+        public override string FileExtension => ".ps1";
 
-        public string SingleLineCommentSymbol => "#";
+        public override string LanguageIdentifier => "powershell";
 
-        public Task<ScriptResult> Run(string file, string arguments, IReadOnlyDictionary<string, string> environment, CancellationToken cancellationToken = default) =>
+        public override string SingleLineCommentSymbol => "#";
+
+        public override Task<ScriptResult> Run(string file, string arguments, IReadOnlyDictionary<string, string> environment, CancellationToken cancellationToken = default) =>
             Invoke(
                 cancellationToken,
                 environment,
@@ -25,32 +26,5 @@ namespace ScriptEx.Core.Engines
                 "-OutputFormat", "Text",
                 "-File", $"\"{file}\"",
                 arguments);
-
-        private async Task<ScriptResult> Invoke(CancellationToken cancellationToken, IReadOnlyDictionary<string, string> environment, params string[] arguments)
-        {
-            var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "pwsh",
-                    Arguments = string.Join(" ", arguments),
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    WorkingDirectory = Environment.CurrentDirectory,
-                },
-                EnableRaisingEvents = true,
-            };
-            foreach (var (key, value) in environment)
-                process.StartInfo.Environment[key] = value;
-
-            process.Start();
-            cancellationToken.Register(() => process.Kill(true));
-            await process.WaitForExitAsync(cancellationToken).IgnoreCancellation();
-
-            var standardOutput = await process.StandardOutput.ReadToEndAsync();
-            var standardError = await process.StandardError.ReadToEndAsync();
-            var exitCode = process.ExitCode;
-            return new ScriptResult(standardOutput, standardError, exitCode);
-        }
     }
 }
