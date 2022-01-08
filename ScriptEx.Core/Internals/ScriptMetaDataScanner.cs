@@ -22,7 +22,7 @@ namespace ScriptEx.Core.Internals
 
         public IReadOnlyList<(string Key, string Value)> GetMetaDataLines(string contents) =>
             contents.Split('\n')
-                .TakeWhile(o => o.StartsWith(metaDataIndicator))
+                .Where(o => o.StartsWith(metaDataIndicator))
                 .Select(o =>
                 {
                     var firstSpace = o.IndexOf(' ');
