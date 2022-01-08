@@ -39,9 +39,10 @@ namespace ScriptEx.Core
 
                 // Types
                 .BindRuntimeType<IScriptEngine, ScriptEngineType>()
-                //.AddType<Entry>()
+                .AddType<Entry>()
                 .AddType<DirectoryEntry>()
                 .AddType<ScriptEntry>()
+                .BindRuntimeType<Unit, UnitType>()
 
                 // Query
                 .AddQueryType<Query>()
