@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using ScriptEx.Shared;
@@ -10,6 +11,8 @@ namespace ScriptEx.Core.Internals
     public class ScriptMetaDataScanner
     {
         private const string KEY_CRON = "cron";
+
+        private const string KEY_TIMEOUT = "timeout";
 
         private static readonly Regex regexCron = new(@"(?<cron>[^\s]+(\ +[^\s]+){4})(\s+(?<arguments>.*))?");
 
@@ -63,11 +66,21 @@ namespace ScriptEx.Core.Internals
                 .WhereNotNull()
                 .ToList();
 
+        private TimeSpan? GetTimeoutEntry(IReadOnlyList<(string Key, string Value)> metaData)
+        {
+            var entries = GetValues(metaData, KEY_TIMEOUT)
+                .Select(o => TimeSpan.Parse(o, CultureInfo.InvariantCulture))
+                .ToList();
+
+            return entries.Count == 0 ? default(TimeSpan?) : entries.Single();
+        }
+
         public ScriptMetaData GetMetaData(string contents)
         {
             var entries = GetMetaDataLines(contents);
             var cronEntries = GetCronEntries(entries);
-            return new ScriptMetaData(cronEntries);
+            var timeout = GetTimeoutEntry(entries);
+            return new ScriptMetaData(cronEntries, timeout);
         }
     }
 }

@@ -40,7 +40,8 @@ namespace ScriptEx.Core.Engines
             };
 
             process.Start();
-            await process.WaitForExitAsync(cancellationToken);
+            cancellationToken.Register(() => process.Kill(true));
+            await process.WaitForExitAsync(cancellationToken).IgnoreCancellation();
 
             var standardOutput = await process.StandardOutput.ReadToEndAsync();
             var standardError = await process.StandardError.ReadToEndAsync();

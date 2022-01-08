@@ -51,10 +51,17 @@ namespace ScriptEx.Core.Internals
                 return null;
 
             var contents = await File.ReadAllTextAsync(absolutePath, cancellationToken);
-            return new ScriptMetaDataScanner(engine.SingleLineCommentSymbol).GetMetaData(contents);
+            try
+            {
+                return new ScriptMetaDataScanner(engine.SingleLineCommentSymbol).GetMetaData(contents);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
-        public async Task<ScriptResult> Run(string relativePath, string arguments, CancellationToken cancellationToken = default)
+        public async Task<ScriptResult> Run(string relativePath, string arguments, TimeSpan? timeout = default, CancellationToken cancellationToken = default)
         {
             var cmd = $"{relativePath} {arguments}".Trim();
             logger.LogDebug($"Running {cmd}...");
@@ -63,9 +70,17 @@ namespace ScriptEx.Core.Internals
             if (engine is null)
                 return new ScriptResult(string.Empty, $"No valid engine for \"{relativePath}\" found.", -1);
 
+            var metaData = await GetMetaData(relativePath, cancellationToken);
+            if (metaData is null)
+                return new ScriptResult(string.Empty, $"Failed to get meta data for \"{relativePath}\".", -1);
+
             var scriptPath = pathFinder.GetAbsolutePath(relativePath);
+            var timedCancellationTokenSource = new CancellationTokenSource(timeout ?? metaData.DefaultTimeout ?? appOptions.DefaultTimeout);
+            var linkedCancellationToken = CancellationTokenSource.CreateLinkedTokenSource(timedCancellationTokenSource.Token, cancellationToken).Token;
             var startTime = DateTimeOffset.Now;
-            var result = await engine.Run(scriptPath, arguments, cancellationToken);
+            var result = await engine.Run(scriptPath, arguments, linkedCancellationToken)
+                .IgnoreCancellation()
+                .ButAsync(() => new ScriptResult(string.Empty, "Engine failed to return cooperatively.", -1));
             var endTime = DateTimeOffset.Now;
 
             var execution = new ScriptExecution(startTime, endTime, pathFinder.GetRelativePath(scriptPath), arguments, result);

@@ -5,7 +5,9 @@ namespace ScriptEx.Shared
 {
     public record CronEntry(string Expression, string Arguments);
 
-    public record ScriptMetaData(IReadOnlyList<CronEntry> CronEntries);
+    public record ScriptMetaData(
+        IReadOnlyList<CronEntry> CronEntries,
+        TimeSpan? DefaultTimeout);
 
     public record ScriptResult(
         string StandardOutput,

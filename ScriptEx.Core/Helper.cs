@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using ScriptEx.Shared;
 
 namespace ScriptEx.Core
@@ -12,7 +10,7 @@ namespace ScriptEx.Core
     internal static class Helper
     {
         public static T GetOrCreate<T>(this IServiceProvider services)
-            => (T)services.GetOrCreate(typeof(T));
+            => (T) services.GetOrCreate(typeof(T));
 
         public static object GetOrCreate(this IServiceProvider services, Type type)
         {
@@ -34,5 +32,32 @@ namespace ScriptEx.Core
             var fileExtension = Path.GetExtension(path);
             return engineRegistry.RegisteredEngines.SingleOrDefault(o => o.FileExtension.Equals(fileExtension, StringComparison.InvariantCultureIgnoreCase));
         }
+
+        public static async Task<T?> IgnoreCancellation<T>(this Task<T> task)
+        {
+            try
+            {
+                return await task;
+            }
+            catch (OperationCanceledException)
+            {
+                return default;
+            }
+        }
+
+        public static async Task IgnoreCancellation(this Task task)
+        {
+            try
+            {
+                await task;
+            }
+            catch (OperationCanceledException) { }
+        }
+
+        public static T But<T>(this T? value, Func<T> getValue)
+            => value == null ? getValue() : value;
+
+        public static async Task<T> ButAsync<T>(this Task<T?> task, Func<T> getValue)
+            => (await task).But(getValue);
     }
 }

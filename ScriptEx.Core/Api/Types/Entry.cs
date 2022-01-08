@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Types;
 using ScriptEx.Core.Internals;
@@ -30,11 +31,10 @@ namespace ScriptEx.Core.Api.Types
         public string? GetLanguage([Service] IScriptEngineRegistry engineRegistry)
             => engineRegistry.GetEngineForFile(Name)?.LanguageIdentifier;
 
-        public ScriptMetaData? GetMetaData([Service] IScriptEngineRegistry engineRegistry)
-        {
-            var singleLineCommentSymbol = engineRegistry.GetEngineForFile(Name)?.SingleLineCommentSymbol;
-            return singleLineCommentSymbol == null ? null : new ScriptMetaDataScanner(singleLineCommentSymbol).GetMetaData(File.ReadAllText(FullName));
-        }
+        public Task<ScriptMetaData?> GetMetaData(
+            [Service] IScriptHandler scriptHandler,
+            [Service] PathFinder pathFinder)
+            => scriptHandler.GetMetaData(pathFinder.GetRelativePath(FullName));
 
         public IQueryable<ScriptExecution> GetHistory(
             [Service] IScriptHistoryRepository historyRepository,
