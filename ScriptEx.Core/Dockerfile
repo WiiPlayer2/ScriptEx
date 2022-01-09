@@ -5,9 +5,8 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src
-COPY ["ScriptEx.Core/ScriptEx.Core.csproj", "ScriptEx.Core/"]
-RUN dotnet restore "ScriptEx.Core/ScriptEx.Core.csproj"
 COPY . .
+RUN dotnet restore "ScriptEx.Core/ScriptEx.Core.csproj"
 WORKDIR "/src/ScriptEx.Core"
 RUN dotnet build "ScriptEx.Core.csproj" -c Release -o /app/build
 
