@@ -49,8 +49,8 @@ pipeline {
                         }
                     }
                     steps {
-                        project.Build();
                         script {
+                            project.Build();
                             built_app = true;
                         }
                     }
@@ -64,7 +64,9 @@ pipeline {
                 stage('Publish App') {
                     when { expression { built_app } }
                     steps {
-                        project.Publish();
+                        script {
+                            project.Publish();
+                        }
                     }
                 }
             }
