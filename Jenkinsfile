@@ -1,7 +1,7 @@
 def dockerBuild = load "ci/jenkins/dockerBuild.groovy";
 def causes = load "ci/jenkins/buildCauses.groovy";
 
-def project = new dockerBuild.Project([
+def project = dockerBuild.createProject([
     imageName: 'script-ex',
     tag: env.BRANCH_NAME.replaceAll('/', '_'),
     registry: 'registry.dark-link.info',
