@@ -1,12 +1,17 @@
-def imageName = 'script-ex';
-def projectName = 'ScriptEx.Core';
+def dockerBuild = load "ci/jenkins/dockerBuild.groovy";
+def causes = load "ci/jenkins/buildCauses.groovy";
+
+def project = new dockerBuild.Project({
+    imageName: 'script-ex',
+    tag: env.BRANCH_NAME.replaceAll('/', '_'),
+    registry: 'registry.dark-link.info',
+    registryCredentials: 'vserver-container-registry',
+    dockerfile: './ScriptEx.Core/Dockerfile',
+});
 
 def built_app = false;
-def isTriggeredByIndexing = currentBuild.getBuildCauses('jenkins.branch.BranchIndexingCause').size();
-def isTriggeredByCommit = currentBuild.getBuildCauses('com.cloudbees.jenkins.GitHubPushCause').size();
-def isTriggeredByUser = currentBuild.getBuildCauses('hudson.model.Cause$UserIdCause').size();
 def lastBuildFailed = "${currentBuild.previousBuild?.result}" != "SUCCESS";
-def forceBuild = isTriggeredByUser || lastBuildFailed;
+def forceBuild = causes.isTriggeredByUser || lastBuildFailed;
 
 pipeline {
     agent {
@@ -14,7 +19,6 @@ pipeline {
     }
 
     environment {
-        CLEAN_GIT_BRANCH = "${env.GIT_BRANCH.replaceAll('/', '_')}"
         DOTNET_CLI_HOME = "/tmp/DOTNET_CLI_HOME"
         DOTNET_NOLOGO = "true"
     }
@@ -45,7 +49,7 @@ pipeline {
                         }
                     }
                     steps {
-                        sh "docker build -t registry.dark-link.info/$imageName:$CLEAN_GIT_BRANCH -f ./$projectName/Dockerfile ."
+                        project.Build();
                         script {
                             built_app = true;
                         }
@@ -60,11 +64,7 @@ pipeline {
                 stage('Publish App') {
                     when { expression { built_app } }
                     steps {
-                        withDockerRegistry([credentialsId: 'vserver-container-registry', url: "https://registry.dark-link.info/"]) {
-                            sh "docker tag registry.dark-link.info/$imageName:$CLEAN_GIT_BRANCH registry.dark-link.info/$imageName:latest"
-                            sh "docker image push registry.dark-link.info/$imageName:$CLEAN_GIT_BRANCH"
-                            sh "docker image push registry.dark-link.info/$imageName:latest"
-                        }
+                        project.Publish();
                     }
                 }
             }
