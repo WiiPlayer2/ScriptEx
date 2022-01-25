@@ -1,13 +1,13 @@
 def dockerBuild = load "ci/jenkins/dockerBuild.groovy";
 def causes = load "ci/jenkins/buildCauses.groovy";
 
-def project = new dockerBuild.Project({
+def project = new dockerBuild.Project([
     imageName: 'script-ex',
     tag: env.BRANCH_NAME.replaceAll('/', '_'),
     registry: 'registry.dark-link.info',
     registryCredentials: 'vserver-container-registry',
     dockerfile: './ScriptEx.Core/Dockerfile',
-});
+]);
 
 def built_app = false;
 def lastBuildFailed = "${currentBuild.previousBuild?.result}" != "SUCCESS";
