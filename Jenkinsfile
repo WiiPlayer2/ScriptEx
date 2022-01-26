@@ -1,75 +1,44 @@
-def dockerBuild = load "ci/jenkins/dockerBuild.groovy";
-def causes = load "ci/jenkins/buildCauses.groovy";
+node('docker') {
+    env.DOTNET_CLI_HOME = "/tmp/DOTNET_CLI_HOME"
+    env.DOTNET_NOLOGO = "true"
+    
+    def dockerBuild = load "ci/jenkins/dockerBuild.groovy";
+    def causes = load "ci/jenkins/buildCauses.groovy";
 
-def project = dockerBuild.createProject([
-    imageName: 'script-ex',
-    tag: env.BRANCH_NAME.replaceAll('/', '_'),
-    registry: 'registry.dark-link.info',
-    registryCredentials: 'vserver-container-registry',
-    dockerfile: './ScriptEx.Core/Dockerfile',
-]);
+    def project = dockerBuild.createProject([
+        imageName: 'script-ex',
+        tag: env.BRANCH_NAME.replaceAll('/', '_'),
+        registry: 'registry.dark-link.info',
+        registryCredentials: 'vserver-container-registry',
+        dockerfile: './ScriptEx.Core/Dockerfile',
+    ]);
 
-def built_app = false;
-def lastBuildFailed = "${currentBuild.previousBuild?.result}" != "SUCCESS";
-def forceBuild = causes.isTriggeredByUser || lastBuildFailed;
+    def built_app = false;
+    def lastBuildFailed = "${currentBuild.previousBuild?.result}" != "SUCCESS";
+    def forceBuild = causes.isTriggeredByUser || lastBuildFailed;
 
-pipeline {
-    agent {
-        label 'docker'
+    stage('Check Integrity') {
+        if(!changeRequest()) return;
+
+        if(env.CHANGE_TARGET == 'main' && !(env.CHANGE_BRANCH ==~ /(release|hotfix)\/.+/)) {
+            error('Only release and hotifx branches are allowed.')
+        }
+        if(env.CHANGE_TARGET == 'dev' && !(env.CHANGE_BRANCH ==~ /(feature|bug|hotfix)\/.+/)) {
+            error('Only feature, bug and hotfix branches are allowed.')
+        }
     }
 
-    environment {
-        DOTNET_CLI_HOME = "/tmp/DOTNET_CLI_HOME"
-        DOTNET_NOLOGO = "true"
+    stage('Build') {
+        if(!forceBuild && env.BUILD_NUMBER != '1') return;
+
+        project.Build();
+        built_app = true;
     }
 
-    stages {
-        stage('Check Integrity') {
-            when { changeRequest() }
-            steps {
-                script {
-                    if(env.CHANGE_TARGET == 'main' && !(env.CHANGE_BRANCH ==~ /(release|hotfix)\/.+/)) {
-                        error('Only release and hotifx branches are allowed.')
-                    }
-                    if(env.CHANGE_TARGET == 'dev' && !(env.CHANGE_BRANCH ==~ /(feature|bug|hotfix)\/.+/)) {
-                        error('Only feature, bug and hotfix branches are allowed.')
-                    }
-                }
-            }
-        }
+    stage('Publish') {
+        if(env.BRANCH_NAME !=~ /main|dev/) return;
+        if(!built_app) return;
 
-        stage('Build') {
-            failFast true
-            parallel {
-                stage('Build App') {
-                    when {
-                        anyOf {
-                            expression { forceBuild }
-                            environment name: 'BUILD_NUMBER', value: '1'
-                        }
-                    }
-                    steps {
-                        script {
-                            project.Build();
-                            built_app = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Publish') {
-            when { branch pattern: "main|dev", comparator: "REGEXP" }
-            parallel {
-                stage('Publish App') {
-                    when { expression { built_app } }
-                    steps {
-                        script {
-                            project.Publish();
-                        }
-                    }
-                }
-            }
-        }
+        project.Publish();
     }
 }
