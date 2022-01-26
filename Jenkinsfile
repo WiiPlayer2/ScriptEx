@@ -1,4 +1,6 @@
 node('docker') {
+    checkout scm;
+
     env.DOTNET_CLI_HOME = "/tmp/DOTNET_CLI_HOME"
     env.DOTNET_NOLOGO = "true"
     
