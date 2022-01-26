@@ -1,4 +1,4 @@
 [submodule "ci/jenkins"]
 	path = ci/jenkins
-	url = git@github.com:WiiPlayer2/jenkins-commons.git
+	url = https://github.com/WiiPlayer2/jenkins-commons.git
 	branch = main
