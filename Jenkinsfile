@@ -7,13 +7,13 @@ node('docker') {
     def dockerBuild = load "ci/jenkins/dockerBuild.groovy";
     def causes = load "ci/jenkins/buildCauses.groovy";
 
-    def project = dockerBuild.createProject([
+    def project = [
         imageName: 'script-ex',
         tag: env.BRANCH_NAME.replaceAll('/', '_'),
         registry: 'registry.dark-link.info',
         registryCredentials: 'vserver-container-registry',
         dockerfile: './ScriptEx.Core/Dockerfile',
-    ]);
+    ];
 
     def built_app = false;
     def lastBuildFailed = "${currentBuild.previousBuild?.result}" != "SUCCESS";
@@ -33,7 +33,7 @@ node('docker') {
     stage('Build') {
         if(!forceBuild && env.BUILD_NUMBER != '1') return;
 
-        project.Build();
+        docker.build(project);
         built_app = true;
     }
 
@@ -41,6 +41,6 @@ node('docker') {
         if(env.BRANCH_NAME !=~ /main|dev/) return;
         if(!built_app) return;
 
-        project.Publish();
+        docker.publish(project);
     }
 }
