@@ -33,7 +33,7 @@ node('docker') {
     stage('Build') {
         if(!forceBuild && env.BUILD_NUMBER != '1') return;
 
-        docker.build(project);
+        dockerBuild.build(project);
         built_app = true;
     }
 
@@ -41,6 +41,6 @@ node('docker') {
         if(env.BRANCH_NAME !=~ /main|dev/) return;
         if(!built_app) return;
 
-        docker.publish(project);
+        dockerBuild.publish(project);
     }
 }
