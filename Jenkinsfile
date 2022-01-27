@@ -14,6 +14,11 @@ node('docker') {
         registry: 'registry.dark-link.info',
         registryCredentials: 'vserver-container-registry',
         dockerfile: './ScriptEx.Core/Dockerfile',
+        platforms: [
+            'linux/amd64',
+            'linux/arm64',
+            'linux/arm/v7',
+        ],
     ]);
 
     def lastBuildFailed = "${currentBuild.previousBuild?.result}" != "SUCCESS";
