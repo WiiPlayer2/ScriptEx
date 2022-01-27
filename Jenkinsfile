@@ -6,6 +6,7 @@ node('docker') {
     
     def dockerBuild = load "ci/jenkins/dockerBuild.groovy";
     def causes = load "ci/jenkins/buildCauses.groovy";
+    def gitFlow = load "ci/jenkins/gitFlow.groovy";
 
     def project = [
         imageName: 'script-ex',
@@ -19,20 +20,9 @@ node('docker') {
     def lastBuildFailed = "${currentBuild.previousBuild?.result}" != "SUCCESS";
     def forceBuild = causes.isTriggeredByUser || lastBuildFailed;
 
-    stage('Check Integrity') {
-        if(!changeRequest()) return;
-
-        if(env.CHANGE_TARGET == 'main' && !(env.CHANGE_BRANCH ==~ /(release|hotfix)\/.+/)) {
-            error('Only release and hotifx branches are allowed.')
-        }
-        if(env.CHANGE_TARGET == 'dev' && !(env.CHANGE_BRANCH ==~ /(feature|bug|hotfix)\/.+/)) {
-            error('Only feature, bug and hotfix branches are allowed.')
-        }
-    }
+    gitFlow.checkPullRequest();
 
     stage('Build') {
-        if(!forceBuild && env.BUILD_NUMBER != '1') return;
-
         dockerBuild.build(project);
         built_app = true;
     }
