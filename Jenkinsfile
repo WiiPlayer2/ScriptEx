@@ -8,29 +8,27 @@ node('docker') {
     def causes = load "ci/jenkins/buildCauses.groovy";
     def gitFlow = load "ci/jenkins/gitFlow.groovy";
 
-    def project = [
+    def project = dockerBuild.prepare([
         imageName: 'script-ex',
         tag: env.BRANCH_NAME.replaceAll('/', '_'),
         registry: 'registry.dark-link.info',
         registryCredentials: 'vserver-container-registry',
         dockerfile: './ScriptEx.Core/Dockerfile',
-    ];
+    ]);
 
-    def built_app = false;
     def lastBuildFailed = "${currentBuild.previousBuild?.result}" != "SUCCESS";
     def forceBuild = causes.isTriggeredByUser || lastBuildFailed;
 
     gitFlow.checkPullRequest();
 
-    stage('Build') {
-        dockerBuild.build(project);
-        built_app = true;
+    if(env.BRANCH_NAME ==~ /main|dev/)
+    {
+        dockerBuild.buildAndPublish(project);
     }
-
-    stage('Publish') {
-        if(env.BRANCH_NAME !=~ /main|dev/) return;
-        if(!built_app) return;
-
-        dockerBuild.publish(project);
+    else
+    {
+        stage('Build') {
+            dockerBuild.build(project);
+        }
     }
 }
