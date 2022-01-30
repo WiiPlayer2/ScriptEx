@@ -18,9 +18,9 @@ namespace ScriptEx.Core.Internals
 
         public IReadOnlyDictionary<string, string> ResolveEnvironmentVariablesFor(string relativePath)
         {
-            var directoryName = Path.GetDirectoryName(relativePath);
+            var directoryName = Path.GetDirectoryName(relativePath) ?? string.Empty;
             var isRoot = string.IsNullOrEmpty(directoryName);
-            var envFile = isRoot ? ENV_FILE : Path.Combine(directoryName!, ENV_FILE);
+            var envFile = isRoot ? ENV_FILE : Path.Combine(directoryName, ENV_FILE);
             var environmentVariables = ReadEnvironmentVariables(envFile);
             if (isRoot)
                 return environmentVariables;
