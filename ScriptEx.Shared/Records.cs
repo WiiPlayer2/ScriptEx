@@ -7,7 +7,8 @@ namespace ScriptEx.Shared
 
     public record ScriptMetaData(
         IReadOnlyList<CronEntry> CronEntries,
-        TimeSpan? DefaultTimeout);
+        TimeSpan? DefaultTimeout,
+        IReadOnlyList<HookType> Hooks);
 
     public record ScriptResult(
         string StandardOutput,

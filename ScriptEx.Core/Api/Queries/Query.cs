@@ -7,23 +7,21 @@ using ScriptEx.Core.Api.Types;
 using ScriptEx.Shared;
 using Path = System.IO.Path;
 
-namespace ScriptEx.Core.Api.Queries
+namespace ScriptEx.Core.Api.Queries;
+
+public class Query
 {
-    public class Query
-    {
-        public IReadOnlyCollection<IScriptEngine> GetEngines(
-            [Service] IScriptEngineRegistry engineRegistry)
-            => engineRegistry.RegisteredEngines;
+    public IReadOnlyCollection<IScriptEngine> GetEngines(
+        [Service] IScriptEngineRegistry engineRegistry)
+        => engineRegistry.RegisteredEngines;
 
-        public IEnumerable<Entry> GetScripts(
-            string? path,
-            [Service] IOptions<AppOptions> appOptions,
-            [Service] IScriptEngineRegistry engineRegistry)
-            => new DirectoryEntry(string.Empty, Path.Join(appOptions.Value.ScriptsPath, path ?? "."))
-                .GetScripts(engineRegistry);
+    public IEnumerable<Entry> GetScripts(
+        string? path,
+        [Service] IOptions<AppOptions> appOptions)
+        => new DirectoryEntry(string.Empty, Path.Join(appOptions.Value.ScriptsPath, path ?? "."))
+            .GetScripts();
 
-        public IQueryable<ScriptExecution> GetHistory(
-            [Service] IScriptHistoryRepository historyRepository)
-            => historyRepository.GetHistory();
-    }
+    public IQueryable<ScriptExecution> GetHistory(
+        [Service] IScriptHistoryRepository historyRepository)
+        => historyRepository.GetHistory();
 }
